@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>포트폴리오 로드맵 생성기</title>
+    <!-- 테일윈드 CSS (디자인을 예쁘게 만들어주는 도구) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 아이콘 폰트 (포스퍼 아이콘) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        /* 캔버스 배경 도트 무늬 패턴 */
+        .canvas-bg {
+            background-color: #0f172a;
+            background-image: radial-gradient(circle, #334155 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        /* 스크롤바 숨기기 */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+    </style>
+</head>
+<body class="h-screen w-full bg-slate-900 text-slate-200 font-sans overflow-hidden flex selection:bg-blue-500/30">
+
+    <!-- 1. 왼쪽 대시보드 & 라이브러리 영역 -->
+    <div class="w-80 bg-slate-800 border-r border-slate-700 flex flex-col z-10 shadow-xl shrink-0">
+        
+        <!-- 프로젝트 정보 -->
+        <div class="p-6 border-b border-slate-700">
+            <h1 class="text-xl font-bold text-white mb-2">30초 모션그래픽 타이틀</h1>
+            <div class="flex items-center gap-3">
+                <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg shadow-blue-500/30">
+                    D-14
+                </span>
+                <div class="flex gap-1">
+                    <span class="text-xs bg-slate-700 px-2 py-1 rounded text-slate-300">After Effects</span>
+                    <span class="text-xs bg-slate-700 px-2 py-1 rounded text-slate-300">C4D</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 금일 작업 일정 -->
+        <div class="p-6 border-b border-slate-700">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-semibold text-slate-300">🔥 오늘의 우선순위</h2>
+                <span class="text-xs text-slate-500">진행중 노드 기반</span>
+            </div>
+            <ul class="space-y-3">
+                <li class="flex items-start gap-3 p-3 rounded-lg border bg-slate-800/50 border-slate-700 opacity-50">
+                    <i class="ph-fill ph-check-circle text-xl text-emerald-500 shrink-0"></i>
+                    <span class="text-sm line-through text-slate-500">레퍼런스 30장 수집</span>
+                </li>
+                <li class="flex items-start gap-3 p-3 rounded-lg border bg-slate-700/50 border-slate-600">
+                    <i class="ph ph-circle text-xl text-slate-400 shrink-0"></i>
+                    <span class="text-sm text-slate-200">전체 무드보드 완성 및 피드백</span>
+                </li>
+                <li class="flex items-start gap-3 p-3 rounded-lg border bg-slate-700/50 border-slate-600">
+                    <i class="ph ph-circle text-xl text-slate-400 shrink-0"></i>
+                    <span class="text-sm text-slate-200">메인 스타일 프레임 스케치</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- 노드 라이브러리 -->
+        <div class="p-6 flex-1 overflow-y-auto">
+            <h2 class="font-semibold text-slate-300 mb-4 flex items-center gap-2">
+                <i class="ph ph-squares-four text-lg"></i> 노드 라이브러리
+            </h2>
+            <p class="text-xs text-slate-500 mb-4">항목을 우측 캔버스로 드래그하세요</p>
+            
+            <div class="space-y-3">
+                <div class="p-3 bg-pink-500/10 border border-pink-500/30 rounded-lg cursor-grab hover:bg-pink-500/20 transition-colors flex items-center gap-3" draggable="true">
+                    <i class="ph-fill ph-image text-xl text-pink-400"></i>
+                    <span class="text-sm font-medium text-pink-100">레퍼런스 수집</span>
+                </div>
+                <div class="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg cursor-grab hover:bg-blue-500/20 transition-colors flex items-center gap-3" draggable="true">
+                    <i class="ph-fill ph-pen-nib text-xl text-blue-400"></i>
+                    <span class="text-sm font-medium text-blue-100">스토리보드 기획</span>
+                </div>
+                <div class="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg cursor-grab hover:bg-emerald-500/20 transition-colors flex items-center gap-3" draggable="true">
+                    <i class="ph-fill ph-bezier-curve text-xl text-emerald-400"></i>
+                    <span class="text-sm font-medium text-emerald-100">2D 에셋 제작</span>
+                </div>
+                <div class="p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg cursor-grab hover:bg-orange-500/20 transition-colors flex items-center gap-3" draggable="true">
+                    <i class="ph-fill ph-video text-xl text-orange-400"></i>
+                    <span class="text-sm font-medium text-orange-100">Ae 본작업</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 중앙 캔버스 영역 (노드 맵) -->
+    <div class="flex-1 relative canvas-bg overflow-hidden" id="canvas-area">
+        
+        <!-- 가짜 연결선 (SVG) -->
+        <svg class="absolute inset-0 w-full h-full z-10 pointer-events-none">
+            <!-- 1번 노드에서 2번 노드로 가는 선 -->
+            <path d="M 320 200 C 400 200, 420 300, 480 300" fill="none" stroke="#475569" stroke-width="3" stroke-dasharray="6,6" />
+        </svg>
+
+        <!-- 캔버스 위 노드 1 (레퍼런스 수집) -->
+        <div class="absolute top-32 left-16 w-64 bg-slate-800 border border-pink-500/50 rounded-xl shadow-2xl overflow-hidden z-20 cursor-move hover:border-pink-400 transition-colors">
+            <div class="bg-pink-500/20 px-4 py-3 border-b border-slate-700 flex justify-between items-center">
+                <span class="text-sm font-bold text-pink-300">1. 레퍼런스 수집</span>
+                <span class="text-xs bg-slate-900 px-2 py-1 rounded-md text-slate-400">완료</span>
+            </div>
+            <div class="p-4">
+                <p class="text-xs text-slate-400 mb-3"><i class="ph ph-link"></i> 핀터레스트 무드보드 연동됨</p>
+                <div class="flex gap-2">
+                    <div class="w-12 h-12 bg-slate-700 rounded-md bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=100&auto=format&fit=crop');"></div>
+                    <div class="w-12 h-12 bg-slate-700 rounded-md bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=100&auto=format&fit=crop');"></div>
+                    <div class="w-12 h-12 bg-slate-700 rounded-md flex items-center justify-center text-slate-500 hover:bg-slate-600 cursor-pointer transition-colors">
+                        <i class="ph ph-plus text-lg"></i>
+                    </div>
+                </div>
+            </div>
+            <!-- 연결점 (Port) -->
+            <div class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-4 h-4 bg-pink-500 rounded-full border-4 border-slate-800"></div>
+        </div>
+
+        <!-- 캔버스 위 노드 2 (스토리보드 기획) -->
+        <div class="absolute top-[210px] left-[480px] w-64 bg-slate-800 border border-blue-500/50 rounded-xl shadow-2xl overflow-hidden z-20 shadow-blue-900/20 cursor-move hover:border-blue-400 transition-colors">
+            <!-- 연결점 (Port) -->
+            <div class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 bg-blue-500 rounded-full border-4 border-slate-800"></div>
+            
+            <div class="bg-blue-500/20 px-4 py-3 border-b border-slate-700 flex justify-between items-center">
+                <span class="text-sm font-bold text-blue-300">2. 스토리보드 기획</span>
+                <span class="text-xs bg-blue-600 px-2 py-1 rounded-md text-white font-bold animate-pulse">진행중</span>
+            </div>
+            <div class="p-4 space-y-3">
+                <label class="flex items-center gap-3 text-sm text-slate-300 cursor-pointer">
+                    <input type="checkbox" class="w-4 h-4 rounded bg-slate-900 border-slate-700 accent-blue-500" /> 장면 1 스케치
+                </label>
+                <label class="flex items-center gap-3 text-sm text-slate-300 cursor-pointer">
+                    <input type="checkbox" class="w-4 h-4 rounded bg-slate-900 border-slate-700 accent-blue-500" /> 트랜지션 아이디어
+                </label>
+                <button class="mt-4 w-full bg-slate-700 hover:bg-slate-600 text-xs py-2 rounded-lg text-slate-200 transition-colors flex items-center justify-center gap-2">
+                    <i class="ph ph-upload-simple text-base"></i> 스케치 파일 업로드
+                </button>
+            </div>
+        </div>
+
+        <!-- 우측 하단 미니맵/안내 -->
+        <div class="absolute bottom-6 right-6 bg-slate-800/80 backdrop-blur-sm border border-slate-700 p-3 rounded-xl text-xs text-slate-400 z-30 shadow-lg">
+            마우스 휠: 확대/축소 &nbsp;|&nbsp; 스페이스바+드래그: 화면 이동
+        </div>
+    </div>
+
+    <!-- 3. 우측 도구 모음 영역 -->
+    <div class="w-16 bg-slate-800 border-l border-slate-700 flex flex-col items-center py-6 z-10 shadow-xl gap-6 shrink-0">
+        
+        <!-- 편집 도구 (JS로 클릭 효과 구현) -->
+        <div class="flex flex-col gap-3" id="toolbar">
+            <button class="tool-btn active p-3 rounded-xl transition-all bg-blue-600 text-white shadow-lg shadow-blue-500/30" title="선택 툴 (V)">
+                <i class="ph ph-cursor-click text-xl"></i>
+            </button>
+            <button class="tool-btn p-3 rounded-xl transition-all text-slate-400 hover:bg-slate-700 hover:text-white" title="드로잉 툴 (B)">
+                <i class="ph ph-pencil-simple text-xl"></i>
+            </button>
+            <button class="tool-btn p-3 rounded-xl transition-all text-slate-400 hover:bg-slate-700 hover:text-white" title="지우개 (E)">
+                <i class="ph ph-eraser text-xl"></i>
+            </button>
+            <button class="tool-btn p-3 rounded-xl transition-all text-slate-400 hover:bg-slate-700 hover:text-white" title="타입 툴 (T)">
+                <i class="ph ph-text-t text-xl"></i>
+            </button>
+        </div>
+
+        <div class="w-8 h-px bg-slate-700"></div>
+
+        <!-- 보기 모드 (View Modes) -->
+        <div class="flex flex-col gap-3" id="view-modes">
+            <button class="view-btn active p-3 rounded-xl transition-all bg-slate-600 text-white" title="전체 보기">
+                <i class="ph ph-eye text-xl"></i>
+            </button>
+            <button class="view-btn p-3 rounded-xl transition-all text-slate-500 hover:bg-slate-700 hover:text-white" title="낙서 및 글 숨김">
+                <i class="ph ph-eye-slash text-xl"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- 간단한 자바스크립트 (버튼 클릭 효과) -->
+    <script>
+        // 툴바 버튼 클릭 시 색상 변경 로직
+        const toolBtns = document.querySelectorAll('.tool-btn');
+        toolBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // 기존 활성화된 버튼 색상 빼기
+                toolBtns.forEach(b => {
+                    b.classList.remove('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-500/30');
+                    b.classList.add('text-slate-400');
+                });
+                // 클릭한 버튼 파란색으로 만들기
+                btn.classList.remove('text-slate-400');
+                btn.classList.add('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-500/30');
+            });
+        });
+
+        // 보기 모드 버튼 클릭 로직
+        const viewBtns = document.querySelectorAll('.view-btn');
+        viewBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                viewBtns.forEach(b => {
+                    b.classList.remove('bg-slate-600', 'text-white');
+                    b.classList.add('text-slate-500');
+                });
+                btn.classList.remove('text-slate-500');
+                btn.classList.add('bg-slate-600', 'text-white');
+            });
+        });
+    </script>
+</body>
+</html>
