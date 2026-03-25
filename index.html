@@ -3,211 +3,368 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>포트폴리오 로드맵 생성기</title>
-    <!-- 테일윈드 CSS (디자인을 예쁘게 만들어주는 도구) -->
+    <title>포트폴리오 로드맵 에디터</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 아이콘 폰트 (포스퍼 아이콘) -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
-        /* 캔버스 배경 도트 무늬 패턴 */
         .canvas-bg {
             background-color: #0f172a;
             background-image: radial-gradient(circle, #334155 1px, transparent 1px);
             background-size: 24px 24px;
         }
-        /* 스크롤바 숨기기 */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        
+        /* 노드 관련 스타일 */
+        .node { position: absolute; user-select: none; }
+        .node-header { cursor: grab; }
+        .node-header:active { cursor: grabbing; }
+        .port { width: 16px; height: 16px; border-radius: 50%; border: 3px solid #1e293b; position: absolute; top: 50%; transform: translateY(-50%); cursor: crosshair; z-index: 30; }
+        .port:hover { transform: translateY(-50%) scale(1.2); }
+        .port-in { left: -8px; background-color: #64748b; }
+        .port-out { right: -8px; background-color: #3b82f6; }
     </style>
 </head>
 <body class="h-screen w-full bg-slate-900 text-slate-200 font-sans overflow-hidden flex selection:bg-blue-500/30">
 
-    <!-- 1. 왼쪽 대시보드 & 라이브러리 영역 -->
-    <div class="w-80 bg-slate-800 border-r border-slate-700 flex flex-col z-10 shadow-xl shrink-0">
-        
-        <!-- 프로젝트 정보 -->
+    <!-- 1. 좌측 사이드바 -->
+    <div class="w-80 bg-slate-800 border-r border-slate-700 flex flex-col z-40 shadow-xl shrink-0">
         <div class="p-6 border-b border-slate-700">
             <h1 class="text-xl font-bold text-white mb-2">30초 모션그래픽 타이틀</h1>
             <div class="flex items-center gap-3">
-                <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg shadow-blue-500/30">
-                    D-14
-                </span>
-                <div class="flex gap-1">
-                    <span class="text-xs bg-slate-700 px-2 py-1 rounded text-slate-300">After Effects</span>
-                    <span class="text-xs bg-slate-700 px-2 py-1 rounded text-slate-300">C4D</span>
-                </div>
+                <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg shadow-blue-500/30">D-14</span>
             </div>
         </div>
 
-        <!-- 금일 작업 일정 -->
-        <div class="p-6 border-b border-slate-700">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="font-semibold text-slate-300">🔥 오늘의 우선순위</h2>
-                <span class="text-xs text-slate-500">진행중 노드 기반</span>
-            </div>
-            <ul class="space-y-3">
-                <li class="flex items-start gap-3 p-3 rounded-lg border bg-slate-800/50 border-slate-700 opacity-50">
-                    <i class="ph-fill ph-check-circle text-xl text-emerald-500 shrink-0"></i>
-                    <span class="text-sm line-through text-slate-500">레퍼런스 30장 수집</span>
-                </li>
-                <li class="flex items-start gap-3 p-3 rounded-lg border bg-slate-700/50 border-slate-600">
-                    <i class="ph ph-circle text-xl text-slate-400 shrink-0"></i>
-                    <span class="text-sm text-slate-200">전체 무드보드 완성 및 피드백</span>
-                </li>
-                <li class="flex items-start gap-3 p-3 rounded-lg border bg-slate-700/50 border-slate-600">
-                    <i class="ph ph-circle text-xl text-slate-400 shrink-0"></i>
-                    <span class="text-sm text-slate-200">메인 스타일 프레임 스케치</span>
-                </li>
-            </ul>
-        </div>
-
-        <!-- 노드 라이브러리 -->
+        <!-- 노드 라이브러리 (드래그 소스) -->
         <div class="p-6 flex-1 overflow-y-auto">
             <h2 class="font-semibold text-slate-300 mb-4 flex items-center gap-2">
                 <i class="ph ph-squares-four text-lg"></i> 노드 라이브러리
             </h2>
             <p class="text-xs text-slate-500 mb-4">항목을 우측 캔버스로 드래그하세요</p>
             
-            <div class="space-y-3">
-                <div class="p-3 bg-pink-500/10 border border-pink-500/30 rounded-lg cursor-grab hover:bg-pink-500/20 transition-colors flex items-center gap-3" draggable="true">
-                    <i class="ph-fill ph-image text-xl text-pink-400"></i>
-                    <span class="text-sm font-medium text-pink-100">레퍼런스 수집</span>
+            <div class="space-y-3" id="node-library">
+                <div class="lib-item p-3 bg-pink-500/10 border border-pink-500/30 rounded-lg cursor-grab hover:bg-pink-500/20 transition-colors flex items-center gap-3" draggable="true" data-type="reference" data-color="pink">
+                    <i class="ph-fill ph-image text-xl text-pink-400 pointer-events-none"></i>
+                    <span class="text-sm font-medium text-pink-100 pointer-events-none">레퍼런스 수집</span>
                 </div>
-                <div class="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg cursor-grab hover:bg-blue-500/20 transition-colors flex items-center gap-3" draggable="true">
-                    <i class="ph-fill ph-pen-nib text-xl text-blue-400"></i>
-                    <span class="text-sm font-medium text-blue-100">스토리보드 기획</span>
+                <div class="lib-item p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg cursor-grab hover:bg-blue-500/20 transition-colors flex items-center gap-3" draggable="true" data-type="storyboard" data-color="blue">
+                    <i class="ph-fill ph-pen-nib text-xl text-blue-400 pointer-events-none"></i>
+                    <span class="text-sm font-medium text-blue-100 pointer-events-none">스토리보드 기획</span>
                 </div>
-                <div class="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg cursor-grab hover:bg-emerald-500/20 transition-colors flex items-center gap-3" draggable="true">
-                    <i class="ph-fill ph-bezier-curve text-xl text-emerald-400"></i>
-                    <span class="text-sm font-medium text-emerald-100">2D 에셋 제작</span>
+                <div class="lib-item p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg cursor-grab hover:bg-emerald-500/20 transition-colors flex items-center gap-3" draggable="true" data-type="asset2d" data-color="emerald">
+                    <i class="ph-fill ph-bezier-curve text-xl text-emerald-400 pointer-events-none"></i>
+                    <span class="text-sm font-medium text-emerald-100 pointer-events-none">2D 에셋 제작</span>
                 </div>
-                <div class="p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg cursor-grab hover:bg-orange-500/20 transition-colors flex items-center gap-3" draggable="true">
-                    <i class="ph-fill ph-video text-xl text-orange-400"></i>
-                    <span class="text-sm font-medium text-orange-100">Ae 본작업</span>
+                <div class="lib-item p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg cursor-grab hover:bg-orange-500/20 transition-colors flex items-center gap-3" draggable="true" data-type="ae" data-color="orange">
+                    <i class="ph-fill ph-video text-xl text-orange-400 pointer-events-none"></i>
+                    <span class="text-sm font-medium text-orange-100 pointer-events-none">Ae 본작업</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 2. 중앙 캔버스 영역 (노드 맵) -->
-    <div class="flex-1 relative canvas-bg overflow-hidden" id="canvas-area">
+    <!-- 2. 중앙 캔버스 영역 -->
+    <div class="flex-1 relative canvas-bg" id="workspace">
         
-        <!-- 가짜 연결선 (SVG) -->
-        <svg class="absolute inset-0 w-full h-full z-10 pointer-events-none">
-            <!-- 1번 노드에서 2번 노드로 가는 선 -->
-            <path d="M 320 200 C 400 200, 420 300, 480 300" fill="none" stroke="#475569" stroke-width="3" stroke-dasharray="6,6" />
+        <!-- 연결선 그리는 SVG 레이어 -->
+        <svg class="absolute inset-0 w-full h-full pointer-events-none z-10" id="lines-layer">
+            <path id="temp-line" fill="none" stroke="#3b82f6" stroke-width="4" stroke-dasharray="8,8" class="hidden" />
+            <!-- 연결된 선들이 여기에 추가됨 -->
         </svg>
 
-        <!-- 캔버스 위 노드 1 (레퍼런스 수집) -->
-        <div class="absolute top-32 left-16 w-64 bg-slate-800 border border-pink-500/50 rounded-xl shadow-2xl overflow-hidden z-20 cursor-move hover:border-pink-400 transition-colors">
-            <div class="bg-pink-500/20 px-4 py-3 border-b border-slate-700 flex justify-between items-center">
-                <span class="text-sm font-bold text-pink-300">1. 레퍼런스 수집</span>
-                <span class="text-xs bg-slate-900 px-2 py-1 rounded-md text-slate-400">완료</span>
-            </div>
-            <div class="p-4">
-                <p class="text-xs text-slate-400 mb-3"><i class="ph ph-link"></i> 핀터레스트 무드보드 연동됨</p>
-                <div class="flex gap-2">
-                    <div class="w-12 h-12 bg-slate-700 rounded-md bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=100&auto=format&fit=crop');"></div>
-                    <div class="w-12 h-12 bg-slate-700 rounded-md bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=100&auto=format&fit=crop');"></div>
-                    <div class="w-12 h-12 bg-slate-700 rounded-md flex items-center justify-center text-slate-500 hover:bg-slate-600 cursor-pointer transition-colors">
-                        <i class="ph ph-plus text-lg"></i>
-                    </div>
+        <!-- 노드들이 배치되는 레이어 -->
+        <div id="nodes-layer" class="absolute inset-0 z-20 w-full h-full">
+            <!-- 기본 노드 1개 생성해둠 -->
+            <div class="node w-64 bg-slate-800 border border-pink-500/50 rounded-xl shadow-2xl overflow-hidden" style="left: 100px; top: 150px;" data-id="node-0">
+                <div class="port port-out" data-node="node-0" data-type="out"></div>
+                <div class="node-header bg-pink-500/20 px-4 py-3 border-b border-slate-700 flex justify-between items-center">
+                    <span class="text-sm font-bold text-pink-300">레퍼런스 수집</span>
                 </div>
-            </div>
-            <!-- 연결점 (Port) -->
-            <div class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-4 h-4 bg-pink-500 rounded-full border-4 border-slate-800"></div>
-        </div>
-
-        <!-- 캔버스 위 노드 2 (스토리보드 기획) -->
-        <div class="absolute top-[210px] left-[480px] w-64 bg-slate-800 border border-blue-500/50 rounded-xl shadow-2xl overflow-hidden z-20 shadow-blue-900/20 cursor-move hover:border-blue-400 transition-colors">
-            <!-- 연결점 (Port) -->
-            <div class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 bg-blue-500 rounded-full border-4 border-slate-800"></div>
-            
-            <div class="bg-blue-500/20 px-4 py-3 border-b border-slate-700 flex justify-between items-center">
-                <span class="text-sm font-bold text-blue-300">2. 스토리보드 기획</span>
-                <span class="text-xs bg-blue-600 px-2 py-1 rounded-md text-white font-bold animate-pulse">진행중</span>
-            </div>
-            <div class="p-4 space-y-3">
-                <label class="flex items-center gap-3 text-sm text-slate-300 cursor-pointer">
-                    <input type="checkbox" class="w-4 h-4 rounded bg-slate-900 border-slate-700 accent-blue-500" /> 장면 1 스케치
-                </label>
-                <label class="flex items-center gap-3 text-sm text-slate-300 cursor-pointer">
-                    <input type="checkbox" class="w-4 h-4 rounded bg-slate-900 border-slate-700 accent-blue-500" /> 트랜지션 아이디어
-                </label>
-                <button class="mt-4 w-full bg-slate-700 hover:bg-slate-600 text-xs py-2 rounded-lg text-slate-200 transition-colors flex items-center justify-center gap-2">
-                    <i class="ph ph-upload-simple text-base"></i> 스케치 파일 업로드
-                </button>
+                <div class="p-4"><p class="text-xs text-slate-400">자유롭게 이동하고 연결하세요</p></div>
             </div>
         </div>
 
-        <!-- 우측 하단 미니맵/안내 -->
-        <div class="absolute bottom-6 right-6 bg-slate-800/80 backdrop-blur-sm border border-slate-700 p-3 rounded-xl text-xs text-slate-400 z-30 shadow-lg">
-            마우스 휠: 확대/축소 &nbsp;|&nbsp; 스페이스바+드래그: 화면 이동
-        </div>
+        <!-- 낙서하는 캔버스 레이어 (가장 위에 있지만 툴에 따라 클릭 통과 여부 결정) -->
+        <canvas id="drawing-canvas" class="absolute inset-0 z-30 pointer-events-none w-full h-full"></canvas>
+
     </div>
 
-    <!-- 3. 우측 도구 모음 영역 -->
-    <div class="w-16 bg-slate-800 border-l border-slate-700 flex flex-col items-center py-6 z-10 shadow-xl gap-6 shrink-0">
-        
-        <!-- 편집 도구 (JS로 클릭 효과 구현) -->
+    <!-- 3. 우측 도구 툴바 -->
+    <div class="w-16 bg-slate-800 border-l border-slate-700 flex flex-col items-center py-6 z-40 shadow-xl gap-6 shrink-0">
         <div class="flex flex-col gap-3" id="toolbar">
-            <button class="tool-btn active p-3 rounded-xl transition-all bg-blue-600 text-white shadow-lg shadow-blue-500/30" title="선택 툴 (V)">
-                <i class="ph ph-cursor-click text-xl"></i>
+            <button data-tool="select" class="tool-btn bg-blue-600 text-white shadow-lg shadow-blue-500/30 p-3 rounded-xl transition-all" title="선택 툴 (노드 조작)">
+                <i class="ph ph-cursor-click text-xl pointer-events-none"></i>
             </button>
-            <button class="tool-btn p-3 rounded-xl transition-all text-slate-400 hover:bg-slate-700 hover:text-white" title="드로잉 툴 (B)">
-                <i class="ph ph-pencil-simple text-xl"></i>
+            <button data-tool="pen" class="tool-btn text-slate-400 hover:bg-slate-700 hover:text-white p-3 rounded-xl transition-all" title="드로잉 (자유 낙서)">
+                <i class="ph ph-pencil-simple text-xl pointer-events-none"></i>
             </button>
-            <button class="tool-btn p-3 rounded-xl transition-all text-slate-400 hover:bg-slate-700 hover:text-white" title="지우개 (E)">
-                <i class="ph ph-eraser text-xl"></i>
-            </button>
-            <button class="tool-btn p-3 rounded-xl transition-all text-slate-400 hover:bg-slate-700 hover:text-white" title="타입 툴 (T)">
-                <i class="ph ph-text-t text-xl"></i>
+            <button data-tool="eraser" class="tool-btn text-slate-400 hover:bg-slate-700 hover:text-white p-3 rounded-xl transition-all" title="지우개">
+                <i class="ph ph-eraser text-xl pointer-events-none"></i>
             </button>
         </div>
-
         <div class="w-8 h-px bg-slate-700"></div>
-
-        <!-- 보기 모드 (View Modes) -->
-        <div class="flex flex-col gap-3" id="view-modes">
-            <button class="view-btn active p-3 rounded-xl transition-all bg-slate-600 text-white" title="전체 보기">
-                <i class="ph ph-eye text-xl"></i>
+        <div class="flex flex-col gap-3">
+            <button id="btn-toggle-view" class="p-3 rounded-xl transition-all bg-slate-600 text-white" title="낙서 끄기/켜기">
+                <i class="ph ph-eye text-xl id-eye-icon pointer-events-none"></i>
             </button>
-            <button class="view-btn p-3 rounded-xl transition-all text-slate-500 hover:bg-slate-700 hover:text-white" title="낙서 및 글 숨김">
-                <i class="ph ph-eye-slash text-xl"></i>
+            <button id="btn-clear-canvas" class="p-3 rounded-xl transition-all text-red-400 hover:bg-slate-700" title="낙서 전체 지우기">
+                <i class="ph ph-trash text-xl pointer-events-none"></i>
             </button>
         </div>
     </div>
 
-    <!-- 간단한 자바스크립트 (버튼 클릭 효과) -->
     <script>
-        // 툴바 버튼 클릭 시 색상 변경 로직
+        // --- 1. 기본 상태 변수 설정 ---
+        let currentTool = 'select'; // select, pen, eraser
+        let nodeCounter = 1;
+        let connections = []; // {from: nodeId, to: nodeId}
+        
+        const workspace = document.getElementById('workspace');
+        const nodesLayer = document.getElementById('nodes-layer');
+        const linesLayer = document.getElementById('lines-layer');
+        const tempLine = document.getElementById('temp-line');
+        const drawingCanvas = document.getElementById('drawing-canvas');
+        const ctx = drawingCanvas.getContext('2d');
+
+        // 캔버스 사이즈 맞추기
+        function resizeCanvas() {
+            drawingCanvas.width = workspace.clientWidth;
+            drawingCanvas.height = workspace.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // --- 2. 툴 전환 로직 (선택 툴 vs 드로잉 툴) ---
         const toolBtns = document.querySelectorAll('.tool-btn');
         toolBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                // 기존 활성화된 버튼 색상 빼기
+            btn.addEventListener('click', (e) => {
+                currentTool = e.target.dataset.tool;
+                
+                // 버튼 UI 업데이트
                 toolBtns.forEach(b => {
                     b.classList.remove('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-500/30');
                     b.classList.add('text-slate-400');
                 });
-                // 클릭한 버튼 파란색으로 만들기
-                btn.classList.remove('text-slate-400');
-                btn.classList.add('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-500/30');
+                e.target.classList.remove('text-slate-400');
+                e.target.classList.add('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-500/30');
+
+                // 툴에 따른 마우스 이벤트 제어
+                if(currentTool === 'select') {
+                    drawingCanvas.style.pointerEvents = 'none'; // 낙서판 클릭 통과 -> 노드 클릭 가능
+                    nodesLayer.style.pointerEvents = 'auto';
+                } else {
+                    drawingCanvas.style.pointerEvents = 'auto'; // 낙서판 클릭 반응 -> 노드 클릭 불가
+                    nodesLayer.style.pointerEvents = 'none';
+                }
             });
         });
 
-        // 보기 모드 버튼 클릭 로직
-        const viewBtns = document.querySelectorAll('.view-btn');
-        viewBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                viewBtns.forEach(b => {
-                    b.classList.remove('bg-slate-600', 'text-white');
-                    b.classList.add('text-slate-500');
-                });
-                btn.classList.remove('text-slate-500');
-                btn.classList.add('bg-slate-600', 'text-white');
+        // 보기 모드 (낙서 켜기/끄기)
+        let isViewVisible = true;
+        document.getElementById('btn-toggle-view').addEventListener('click', (e) => {
+            isViewVisible = !isViewVisible;
+            drawingCanvas.style.opacity = isViewVisible ? '1' : '0';
+            e.currentTarget.innerHTML = isViewVisible ? '<i class="ph ph-eye text-xl pointer-events-none"></i>' : '<i class="ph ph-eye-slash text-xl pointer-events-none"></i>';
+            e.currentTarget.className = isViewVisible ? "p-3 rounded-xl transition-all bg-slate-600 text-white" : "p-3 rounded-xl transition-all text-slate-500 hover:bg-slate-700 hover:text-white";
+        });
+        
+        // 낙서 전체 지우기
+        document.getElementById('btn-clear-canvas').addEventListener('click', () => {
+            ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+        });
+
+        // --- 3. 드로잉 기능 (캔버스) ---
+        let isDrawing = false;
+        let lastX = 0, lastY = 0;
+
+        drawingCanvas.addEventListener('mousedown', (e) => {
+            if(currentTool === 'select') return;
+            isDrawing = true;
+            [lastX, lastY] = [e.offsetX, e.offsetY];
+        });
+
+        drawingCanvas.addEventListener('mousemove', (e) => {
+            if(!isDrawing) return;
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(e.offsetX, e.offsetY);
+            
+            if (currentTool === 'pen') {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = '#f87171'; // 빨간펜
+                ctx.lineWidth = 4;
+            } else if (currentTool === 'eraser') {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.lineWidth = 30; // 지우개 크기
+            }
+            
+            ctx.lineCap = 'round';
+            ctx.stroke();
+            [lastX, lastY] = [e.offsetX, e.offsetY];
+        });
+
+        window.addEventListener('mouseup', () => isDrawing = false);
+
+        // --- 4. 드래그 앤 드롭으로 노드 생성 ---
+        const libItems = document.querySelectorAll('.lib-item');
+        libItems.forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('type', item.dataset.type);
+                e.dataTransfer.setData('color', item.dataset.color);
+                e.dataTransfer.setData('title', item.querySelector('span').innerText);
             });
         });
+
+        workspace.addEventListener('dragover', (e) => e.preventDefault());
+        workspace.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const type = e.dataTransfer.getData('type');
+            if(!type) return;
+            
+            const color = e.dataTransfer.getData('color');
+            const title = e.dataTransfer.getData('title');
+            
+            // 새 노드 HTML 생성
+            const nodeId = `node-${nodeCounter++}`;
+            const nodeDiv = document.createElement('div');
+            nodeDiv.className = `node w-64 bg-slate-800 border border-${color}-500/50 rounded-xl shadow-2xl overflow-hidden`;
+            
+            // 마우스 위치에 노드 놓기 (워크스페이스 기준 상대 좌표)
+            const rect = workspace.getBoundingClientRect();
+            nodeDiv.style.left = `${e.clientX - rect.left - 100}px`;
+            nodeDiv.style.top = `${e.clientY - rect.top - 20}px`;
+            nodeDiv.dataset.id = nodeId;
+
+            nodeDiv.innerHTML = `
+                <div class="port port-in" data-node="${nodeId}" data-type="in"></div>
+                <div class="port port-out" data-node="${nodeId}" data-type="out"></div>
+                <div class="node-header bg-${color}-500/20 px-4 py-3 border-b border-slate-700 flex justify-between items-center">
+                    <span class="text-sm font-bold text-${color}-300">${title}</span>
+                </div>
+                <div class="p-4"><textarea class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-slate-300 placeholder-slate-500 outline-none focus:border-${color}-500" placeholder="메모를 입력하세요..."></textarea></div>
+            `;
+            
+            nodesLayer.appendChild(nodeDiv);
+            attachNodeEvents(nodeDiv);
+        });
+
+        // --- 5. 노드 이동 및 선 연결 로직 ---
+        let draggedNode = null;
+        let startX, startY, initialLeft, initialTop;
+        
+        let connectingPort = null; // 선을 긋기 시작한 포트
+
+        function attachNodeEvents(node) {
+            const header = node.querySelector('.node-header');
+            
+            // 노드 이동
+            header.addEventListener('mousedown', (e) => {
+                if(currentTool !== 'select') return;
+                draggedNode = node;
+                startX = e.clientX;
+                startY = e.clientY;
+                initialLeft = parseInt(node.style.left || 0);
+                initialTop = parseInt(node.style.top || 0);
+                node.style.zIndex = 30; // 드래그 시 위로
+            });
+
+            // 포트(연결점) 클릭
+            const ports = node.querySelectorAll('.port');
+            ports.forEach(port => {
+                port.addEventListener('mousedown', (e) => {
+                    e.stopPropagation(); // 노드 이동 막기
+                    if(port.dataset.type === 'out') {
+                        connectingPort = port;
+                        tempLine.classList.remove('hidden');
+                    }
+                });
+
+                port.addEventListener('mouseup', (e) => {
+                    if(connectingPort && connectingPort !== port && port.dataset.type === 'in' && connectingPort.dataset.node !== port.dataset.node) {
+                        // 선 연결 성공
+                        connections.push({ from: connectingPort.dataset.node, to: port.dataset.node });
+                        drawAllLines();
+                    }
+                });
+            });
+        }
+
+        // 초기 생성된 노드에 이벤트 달기
+        document.querySelectorAll('.node').forEach(attachNodeEvents);
+
+        // 마우스 무브 (노드 이동 및 임시 선 그리기)
+        window.addEventListener('mousemove', (e) => {
+            const rect = workspace.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            // 1. 노드 이동 중
+            if (draggedNode) {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                draggedNode.style.left = `${initialLeft + dx}px`;
+                draggedNode.style.top = `${initialTop + dy}px`;
+                drawAllLines(); // 이동할 때마다 선 다시 그리기
+            }
+            
+            // 2. 선 긋는 중
+            if (connectingPort) {
+                const portRect = connectingPort.getBoundingClientRect();
+                const startX = portRect.left + 8 - rect.left;
+                const startY = portRect.top + 8 - rect.top;
+                
+                // SVG 베지에 곡선 경로 만들기
+                const path = `M ${startX} ${startY} C ${startX + 100} ${startY}, ${mouseX - 100} ${mouseY}, ${mouseX} ${mouseY}`;
+                tempLine.setAttribute('d', path);
+            }
+        });
+
+        // 마우스 업 (작업 종료)
+        window.addEventListener('mouseup', () => {
+            if(draggedNode) {
+                draggedNode.style.zIndex = '';
+                draggedNode = null;
+            }
+            if(connectingPort) {
+                connectingPort = null;
+                tempLine.classList.add('hidden');
+            }
+        });
+
+        // --- 6. 연결선 다시 그리기 함수 ---
+        function drawAllLines() {
+            // 기존 선들 지우기
+            document.querySelectorAll('.connection-line').forEach(line => line.remove());
+            const rect = workspace.getBoundingClientRect();
+
+            connections.forEach(conn => {
+                const outPort = document.querySelector(`.port[data-node="${conn.from}"][data-type="out"]`);
+                const inPort = document.querySelector(`.port[data-node="${conn.to}"][data-type="in"]`);
+                
+                if(outPort && inPort) {
+                    const outRect = outPort.getBoundingClientRect();
+                    const inRect = inPort.getBoundingClientRect();
+                    
+                    const startX = outRect.left + 8 - rect.left;
+                    const startY = outRect.top + 8 - rect.top;
+                    const endX = inRect.left + 8 - rect.left;
+                    const endY = inRect.top + 8 - rect.top;
+
+                    const pathStr = `M ${startX} ${startY} C ${startX + 100} ${startY}, ${endX - 100} ${endY}, ${endX} ${endY}`;
+                    
+                    const newPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    newPath.setAttribute('d', pathStr);
+                    newPath.setAttribute('fill', 'none');
+                    newPath.setAttribute('stroke', '#64748b'); // 기본 선 색상
+                    newPath.setAttribute('stroke-width', '3');
+                    newPath.setAttribute('class', 'connection-line');
+                    
+                    linesLayer.appendChild(newPath);
+                }
+            });
+        }
     </script>
 </body>
 </html>
